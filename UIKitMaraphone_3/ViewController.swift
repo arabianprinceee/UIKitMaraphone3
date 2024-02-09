@@ -24,6 +24,7 @@ class ViewController: UIViewController {
         slider.value = 0
         slider.translatesAutoresizingMaskIntoConstraints = false
         slider.addTarget(self, action: #selector(sliderValueDidChange(_:)), for: .valueChanged)
+        slider.addTarget(self, action: #selector(userDidTouchUpSlider(_:)), for: .touchUpInside)
         return slider
     }()
 
@@ -47,20 +48,21 @@ class ViewController: UIViewController {
     }
 
     @objc private func sliderValueDidChange(_ sender: UISlider) {
-        let scale = 1 + 0.5 * CGFloat(sender.value)
-        let scaleTransform = CGAffineTransform(scaleX: scale, y: scale)
-
-        let degrees = 90 * CGFloat(sender.value)
-        let radians = degrees * (CGFloat.pi / 180)
-
-        let resultTransform = scaleTransform.concatenating(.init(rotationAngle: radians))
+        let rotationValue = CGFloat(slider.value) * (.pi / 2)
+        let scaleValue = CGFloat(slider.value) * 0.5 + 1
+        square.transform = CGAffineTransform(
+            rotationAngle: rotationValue
+        ).scaledBy(x: scaleValue, y: scaleValue)
 
         let minValue = view.layoutMargins.left + square.frame.width / 2
         let maxValue = view.frame.width - view.layoutMargins.right - square.frame.width / 2
+        self.square.center.x = minValue + (maxValue - minValue) * CGFloat(sender.value)
+    }
 
-        UIView.animate(withDuration: 0.25) {
-            self.square.transform = resultTransform
-            self.square.center.x = minValue + (maxValue - minValue) * CGFloat(sender.value)
+    @objc func userDidTouchUpSlider(_ sender: UISlider) {
+        sender.setValue(sender.maximumValue, animated: true)
+        UIView.animate(withDuration: 0.5) {
+            self.sliderValueDidChange(sender)
         }
     }
 
